@@ -1,24 +1,29 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-@app.route("/")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ChatRequest(BaseModel):
+    message: str = ""
+
+@app.get("/")
 def home():
-    return jsonify({"status": "ok", "message": "Arran AI Core - พี่น้องไม่ทิ้งกัน"})
+    return {"status": "ok", "message": "Arran AI Core - พี่น้องไม่ทิ้งกัน"}
 
-@app.route("/health")
+@app.get("/health")
 def health():
-    return jsonify({"status": "ok"})
+    return {"status": "ok"}
 
-@app.route("/chat", methods=["POST"])
-def chat():
-    data = request.get_json(silent=True) or {}
-    msg = data.get("message", "")
-    return jsonify({"reply": f"รับทราบครับพี่: {msg}"})
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+@app.post("/chat")
+def chat(data: ChatRequest):
+    return {"reply": f"รับทราบครับพี่: {data.message}"}
